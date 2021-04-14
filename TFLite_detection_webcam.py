@@ -100,14 +100,16 @@ use_TPU = args.edgetpu
 # If tflite_runtime is installed, import interpreter from tflite_runtime, else import from regular tensorflow
 # If using Coral Edge TPU, import the load_delegate library
 pkg = importlib.util.find_spec('tflite_runtime')
-if pkg:
-    from tflite_runtime.interpreter import Interpreter
-    if use_TPU:
-        from tflite_runtime.interpreter import load_delegate
-else:
-    from tensorflow.lite.python.interpreter import Interpreter
-    if use_TPU:
-        from tensorflow.lite.python.interpreter import load_delegate
+
+from tensorflow.lite.python.interpreter import Interpreter
+#if pkg:
+#    from tflite_runtime.interpreter import Interpreter
+#    if use_TPU:
+#        from tflite_runtime.interpreter import load_delegate
+#else:
+#    from tensorflow.lite.python.interpreter import Interpreter
+#    if use_TPU:
+#        from tensorflow.lite.python.interpreter import load_delegate
 
 # If using Edge TPU, assign filename for Edge TPU model
 if use_TPU:
@@ -214,12 +216,14 @@ while True:
             label = '%s: %d%%' % (object_name, int(scores[i]*100)) # Example: 'person: 72%'
             labelSize, baseLine = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2) # Get font size
             label_ymin = max(ymin, labelSize[1],  10) # Make sure not to draw label too close to top of window
-            cv2.rectangle(frame, (xmin, label_ymin-labelSize[1]-10), (xmin, labelSize[0], label_ymin, baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
+            cv2.rectangle(frame, (xmin, label_ymin-labelSize[1]-10), (xmin+ labelSize[0], label_ymin- baseLine-10), (255, 255, 255), cv2.FILLED) # Draw white box to put label text in
             cv2.putText(frame, label, (xmin, label_ymin-7), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2) # Draw label text
 
             # Draw circle in center
-            xcenter = xmin   (int(round((xmax - xmin) / 2)))
-            ycenter = ymin   (int(round((ymax - ymin) / 2)))
+            test = round((xmax-xmin)/2)
+            test2= round((ymax-ymin)/2)
+            xcenter = xmin* (int(test ))
+            ycenter = ymin* (int(test2))
             cv2.circle(frame, (xcenter, ycenter), 5, (0,0,255), thickness=-1)
 
             # Print info
