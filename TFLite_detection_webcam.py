@@ -33,6 +33,9 @@ import importlib.util
 import signal
 import sys
 
+from http.server import HTTPServer, CGIHTTPRequestHandler
+from fs.osfs import OSFS
+
 # Define VideoStream class to handle streaming of video from webcam in separate processing thread
 # Source - Adrian Rosebrock, PyImageSearch: https://www.pyimagesearch.com/2015/12/28/increasing-raspberry-pi-fps-with-python-and-opencv/
 class VideoStream:
@@ -76,20 +79,23 @@ class VideoStream:
         self.stopped = True
 
 
-def notifyUserThread(humanDetected):
-    
+def notifyUserThread(humanDetected, f):
+    os.chdir('./programoutput')
+    server_object = HTTPServer(server_address=('', 50505), RequestHandlerClass=CGIHTTPRequestHandler)
+    # Start the web server
+    server_object.serve_forever()
+
     humanDetected[0] = 0
     while 1:
         while humanDetected[0] == 0:
             time.sleep(.25)
         humanDetected[0] = 0
-        print("JOEPIE")
+        
 
-def imageDetectionThread(humanDetected):
+def imageDetectionThread(humanDetected, f):
+    movingAverage = 0
     while 1:
-        movingAverage = 0
-
-        while movingAverage < 0.1:
+        while movingAverage < second_threshold:
             try:
                 # Start timer (for calculating frame rate)
                 t1 = cv2.getTickCount()
@@ -139,7 +145,8 @@ def imageDetectionThread(humanDetected):
                     if ((scores[i] > min_conf_threshold) and (scores[i] <= 1.0) and (labels[int(classes[i])] == 'person')):
                         movingAverage = movingAverage*0.9 + 0.1*scores[i]
                         if(DEBUG):
-                            print('Hit! Confidence:', scores[i], ', movingAverage: ', movingAverage)
+                            print('Hit! Confidence:' + str(scores[i]) + ', movingAverage: ' + str(movingAverage))
+                            f.write('\nHit! Confidence:' + str(scores[i]) + ', movingAverage: ' + str(movingAverage))
                     else: 
                         movingAverage = movingAverage *0.98
                         
@@ -208,9 +215,10 @@ def imageDetectionThread(humanDetected):
         g = open("output", "w")
         g.write("1")
         g.close()
+        movingAverage = second_threshold - 0.01
 
         cv2.imwrite("detectedHuman.jpg", detectedframe)
-
+        time.sleep(.5)
 
 # Define and parse input arguments
 parser = argparse.ArgumentParser()
@@ -218,7 +226,9 @@ parser.add_argument('--modeldir', help='Folder the .tflite file is located in', 
 parser.add_argument('--graph', help='Name of the .tflite file, if different than detect.tflite', default='detect.tflite')
 parser.add_argument('--labels', help='Name of the labelmap file, if different than labelmap.txt', default='labelmap.txt')
 parser.add_argument('--threshold', help='Minimum confidence threshold for displaying detected objects', default=0.5)
+parser.add_argument('--confidence', help='Minimum confidence threshold for determining this is a human ', default=0.2)
 parser.add_argument('--resolution', help='Desired webcam resolution in WxH. If the webcam does not support the resolution entered, errors may occur.', default='1280x720')
+# parser.add_argument('--resolution', help='Desired webcam resolution in WxH. If the webcam does not support the resolution entered, errors may occur.', default='1920x1080')
 parser.add_argument('--edgetpu', help='Use Coral Edge TPU Accelerator to speed up detection', action='store_true')
 parser.add_argument('--debug', help='Use debugging mode',default=False, action='store_true')
 
@@ -228,15 +238,22 @@ MODEL_NAME = args.modeldir
 GRAPH_NAME = args.graph
 LABELMAP_NAME = args.labels
 min_conf_threshold = float(args.threshold)
+second_threshold = float(args.confidence)
 resW, resH = args.resolution.split('x')
 imW, imH = int(resW), int(resH)
 use_TPU = args.edgetpu
 DEBUG = args.debug
 
-f = open("detectionlog.txt", "a")
+try: 
+    os.chdir('.')
+    os.mkdir('programoutput')
+except:
+    pass
 
-g = open("output", "w")
-g.write("1")
+logfile = open("./programoutput/detectionlog.txt", "a")
+
+g = open("./programoutput/output", "w")
+g.write("")
 g.close()
 
 
@@ -245,6 +262,7 @@ g.close()
 # If using Coral Edge TPU, import the load_delegate library
 pkg = importlib.util.find_spec('tflite_runtime')
 
+print("ignore the following warning")
 from tensorflow.lite.python.interpreter import Interpreter
 #if pkg:
 #    from tflite_runtime.interpreter import Interpreter
@@ -320,8 +338,8 @@ detectedframe = None
 ## MAIN ## (sorry I don't got too much python experience so I've done it like this, there is probably a better way)
 human_detected = [0] #create list to pass by reference
 try:
-   ImageDetectionThread = Thread(target=imageDetectionThread, daemon=True, args=(human_detected,))
-   NotifyUserThread = Thread(target=notifyUserThread, daemon=True, args=(human_detected,))
+   ImageDetectionThread = Thread(target=imageDetectionThread, daemon=True, args=(human_detected,logfile))
+   NotifyUserThread = Thread(target=notifyUserThread, daemon=True, args=(human_detected,logfile))
    ImageDetectionThread.start()
    NotifyUserThread.start()
 except:
