@@ -1,5 +1,5 @@
 # Person Detector using Tflite, raspberrypi camera and Homebridge
-
+### N.B.: ik zie nu dat de code die in python staat nog grotendeels de originele comments (en header) heeft van Evan Juras. Mijn code is een modificatie op zijn modificatie van https://github.com/tensorflow/tensorflow/blob/master/tensorflow/lite/examples/python/label_image.py, en heeft veel toegvoegde elementen. Het originele project is te zien op https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10.
 Nodig: 
  - Raspberry pi 3b/4
  - Benodidge libraries in venv beschreven in https://www.digikey.com/en/maker/projects/how-to-perform-object-detection-with-tensorflow-lite-on-raspberry-pi/b929e1519c7c43d5b2c6f89984883588
