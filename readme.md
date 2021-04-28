@@ -32,4 +32,6 @@ Dit is te implementeren maar blijkt lastiger dan het zou lijken. Hiervoor is een
 ### Docker
 Een Docker-container zou het proces van setup erg vergemakkelijken. Dit is alleen in deze scope iets te veel gevraagd.
 ## Video
-Een video van de werking is te zien op [![Testvideo](https://img.youtube.com/vi/URSCkwpq7DU/0.jpg)](https://youtube.com/shorts/URSCkwpq7DU?feature=share)
+Een video van de werking is te zien in deze video: [![Testvideo](https://img.youtube.com/vi/URSCkwpq7DU/0.jpg)](https://youtube.com/shorts/URSCkwpq7DU?feature=share)
+
+Verdere video's verschijnen later vandaag in deze playlist: [playlist](https://youtube.com/playlist?list=PLm1u9so5js4u3rSxmQwpRpVraKscDPqEZ)
